@@ -1,4 +1,4 @@
-package com.gaoyuan.bitmapcompress;
+package com.gaoyuan.bitmapcompress.Luban3;
 
 import android.os.Handler;
 import android.os.Looper;

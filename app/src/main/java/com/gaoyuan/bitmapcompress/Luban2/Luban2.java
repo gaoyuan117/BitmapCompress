@@ -1,4 +1,4 @@
-package com.gaoyuan.bitmapcompress;
+package com.gaoyuan.bitmapcompress.Luban2;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -23,10 +23,13 @@ import io.reactivex.functions.Function;
 import io.reactivex.functions.Predicate;
 import io.reactivex.schedulers.Schedulers;
 
-import static com.gaoyuan.bitmapcompress.Preconditions.checkNotNull;
+import static com.gaoyuan.bitmapcompress.Luban2.Preconditions.checkNotNull;
 
 /**
  * Created by gaoyuan on 2017/3/16.
+ * <p>
+ * 采用Rxjava，改造Luban框架，可以压缩多张图片,但是图片质量要固定,不能动态计算，压缩九张3M左右的图片大概2.7s左右
+ * 不知道微信的为什么那么快...
  */
 
 public class Luban2 {
@@ -73,7 +76,7 @@ public class Luban2 {
     private static File getPhotoCacheDir(Context context, String cacheName) {
         File cacheDir = context.getCacheDir();
         if (cacheDir != null) {
-           String path = context.getExternalFilesDir(null) + cacheName;
+            String path = context.getExternalFilesDir(null) + cacheName;
             File result = new File(path);
             if (!result.mkdirs() && (!result.exists() || !result.isDirectory())) {
                 // File wasn't able to create a directory, or the result exists but not a directory
@@ -144,7 +147,7 @@ public class Luban2 {
                     .map(new Function<File, File>() {
                         @Override
                         public File apply(File file) throws Exception {
-                            Log.e("gy","执行几次");
+                            Log.e("gy", "执行几次");
                             return thirdCompress(file);
                         }
                     })
@@ -178,8 +181,11 @@ public class Luban2 {
         return this;
     }
 
-    public Luban2 load(List<File> files) {
-        mFile = files;
+    public Luban2 load(List<String> files) {
+        mFile.clear();
+        for (int i = 0; i < files.size(); i++) {
+            mFile.add(new File(files.get(i)));
+        }
         return this;
     }
 
@@ -455,7 +461,7 @@ public class Luban2 {
      * @param bitmap   the image what be save   目标图片
      * @param size     the file size of image   期望大小
      */
-    private File saveImage(String filePath, Bitmap bitmap, long size){
+    private File saveImage(String filePath, Bitmap bitmap, long size) {
         checkNotNull(bitmap, TAG + "bitmap cannot be null");
 
         File result = new File(filePath.substring(0, filePath.lastIndexOf("/")));
@@ -464,7 +470,7 @@ public class Luban2 {
 
 //        ByteArrayOutputStream stream = new ByteArrayOutputStream();
 //
-        int options = 100;
+//        int options = 100;
 //        bitmap.compress(Bitmap.CompressFormat.JPEG, options, stream);
 //
 //        while (stream.toByteArray().length / 1024 > size && options > 6) {
@@ -487,4 +493,24 @@ public class Luban2 {
         mPathList.add(filePath);
         return file;
     }
+
+
+    public interface OnCompressListener {
+
+        /**
+         * Fired when the compression is started, override to handle in your own code
+         */
+        void onStart();
+
+        /**
+         * Fired when a compression returns successfully, override to handle in your own code
+         */
+        void onSuccess(List<String> files);
+
+        /**
+         * Fired when a compression fails to complete, override to handle in your own code
+         */
+        void onError(Throwable e);
+    }
+
 }

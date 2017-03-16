@@ -1,4 +1,4 @@
-package com.gaoyuan.bitmapcompress;
+package com.gaoyuan.bitmapcompress.Luban2;
 
 import android.support.annotation.Nullable;
 
@@ -6,7 +6,7 @@ import android.support.annotation.Nullable;
  * Created by gaoyuan on 2017/3/16.
  */
 
-final class Preconditions {
+ final class Preconditions {
 
     /**
      * Ensures that an object reference passed as a parameter to the calling method is not null.

@@ -1,4 +1,4 @@
-package com.gaoyuan.bitmapcompress;
+package com.gaoyuan.bitmapcompress.Luban3;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -13,8 +13,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 
 /**
- * Copyright (C) 2016 Huijimuhe Technologies. All rights reserved.
- * Contact: 20903213@qq.com Zengweizhou
+ * 采用线程池，改造Luban框架，可以动态计算图片质量，固定到一定值，例如100k
+ * 但是好像图片顺序回错乱，时间长点，九张图3s多的样子
  */
 public class ImageCompressUtils {
     private static final String TAG = ImageCompressUtils.class.getName();

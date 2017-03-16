@@ -96,11 +96,12 @@ public class BitmapUtils {
     }
 
     /**
-     * @param
-     * @param filePath
-     * @return
+     * JPEG so库，微信压缩技术（不知真假）
+     *
+     * @param filePath 压缩的图片路径
+     * @return 保存图片地址
      */
-    public static String compressBitmap(Context context,String filePath) {
+    public static String compressBitmap(Context context, String filePath) {
         String s = System.currentTimeMillis() + ".png";
         String p = context.getExternalFilesDir(null) + s;
         Bitmap image = BitmapFactory.decodeFile(filePath);
@@ -128,7 +129,7 @@ public class BitmapUtils {
             result.compress(Bitmap.CompressFormat.JPEG, options, baos);
         }
         // JNI调用保存图片到SD卡 这个关键
-        NativeUtil.saveBitmap(result, 80,p , true);
+        NativeUtil.saveBitmap(result, 80, p, true);
         // 释放Bitmap
         if (result != null && !result.isRecycled()) {
             result.recycle();

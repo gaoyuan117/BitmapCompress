@@ -5,32 +5,25 @@ import android.app.ProgressDialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
-import android.graphics.Rect;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
 import android.provider.MediaStore;
-import android.provider.Settings;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import net.bither.util.NativeUtil;
+import com.gaoyuan.bitmapcompress.Luban2.Luban2;
+import com.gaoyuan.bitmapcompress.Luban3.ImageCompressUtils;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.functions.Action;
 import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
@@ -47,16 +40,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private List<String> path2, path3;
     private long s1, s2;
 
-
-    private Handler handler = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-            super.handleMessage(msg);
-            Toast.makeText(MainActivity.this, "时间 ：" + (s2 - s1), Toast.LENGTH_SHORT).show();
-        }
-    };
-
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -69,7 +52,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         tv1 = (TextView) findViewById(R.id.tv1);
         tv2 = (TextView) findViewById(R.id.tv2);
         progressDialog = new ProgressDialog(this);
-        progressDialog.setMessage("正在上传图片");
+        progressDialog.setMessage("正在压缩图片");
 
         select.setOnClickListener(this);
         take.setOnClickListener(this);
@@ -84,6 +67,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == 100) {//选择的图片地址回掉
             if (resultCode == RESULT_OK) {
+
                 Observable.just(BitmapFactory.decodeFile(path))
                         .map(new Function<Bitmap, String>() {
                             @Override
@@ -106,12 +90,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         if (requestCode == 111) {
             path2 = data.getStringArrayListExtra(MultiImageSelectorActivity.EXTRA_RESULT);
-            files.clear();
-            for (int i = 0; i < path2.size(); i++) {
-                File file = new File(path2.get(i));
-                files.add(file);
-            }
-
         }
     }
 
@@ -128,43 +106,36 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.bt_main_start:
                 s1 = System.currentTimeMillis();
                 a();
-//                luban();
-//                b();
+//                luban2();
                 break;
         }
     }
 
-    private void luban() {
+
+    private void luban2() {
         Luban2.get(this)
-                .load(files)                     //传人要压缩的图片
-                .putGear(Luban2.THIRD_GEAR)      //设定压缩档次，默认三挡
-                .setCompressListener(new OnCompressListener() { //设置回调
+                .load(path2)                     //传人要压缩的图片
+                .putGear(Luban2.THIRD_GEAR)     //设定压缩档次，默认三挡
+                .setCompressListener(new Luban2.OnCompressListener() { //设置回调
                     @Override
                     public void onStart() {
                         progressDialog.show();
-                        // TODO 压缩开始前调用，可以在方法内启动 loading UI
                     }
-
                     @Override
                     public void onSuccess(List<String> files) {
-                        // TODO 压缩成功后调用，返回压缩后的图片文件
                         progressDialog.dismiss();
                         s2 = System.currentTimeMillis();
                         Log.e("gy", "时间 ：" + (s2 - s1));
                         for (int i = 0; i < files.size(); i++) {
                             Log.e("gy", "地址 " + files.get(i));
-//                            Bitmap bitmap = BitmapFactory.decodeFile(files.get(i));
-//                            Log.e("gy","图片大小 = "+bitmap.getByteCount());
                         }
                     }
-
                     @Override
                     public void onError(Throwable e) {
                         progressDialog.dismiss();
                         Log.e("gy", e.getMessage());
-                        // TODO 当压缩过去出现问题时调用
                     }
-                }).launch();    //启动压缩
+                }).launch();//启动压缩
     }
 
 
@@ -180,7 +151,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             if (finalI == 8) {
                                 s2 = System.currentTimeMillis();
                                 Log.e("gy", "时间 ：" + (s2 - s1));
-                                handler.sendEmptyMessage(011);
                             }
                         }
 
