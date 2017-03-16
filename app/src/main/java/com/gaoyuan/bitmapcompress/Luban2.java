@@ -9,7 +9,6 @@ import android.support.annotation.NonNull;
 import android.text.TextUtils;
 import android.util.Log;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -30,15 +29,15 @@ import static com.gaoyuan.bitmapcompress.Preconditions.checkNotNull;
  * Created by gaoyuan on 2017/3/16.
  */
 
-public class Luban {
+public class Luban2 {
 
     private static final int FIRST_GEAR = 1;
     public static final int THIRD_GEAR = 3;
 
-    private static final String TAG = "Luban";
+    private static final String TAG = "Luban2";
     private static String DEFAULT_DISK_CACHE_DIR = "luban_disk_cache";
 
-    private static volatile Luban INSTANCE;
+    private static volatile Luban2 INSTANCE;
 
     private final File mCacheDir;
 
@@ -48,7 +47,7 @@ public class Luban {
     private String filename;
     private static List<String> mPathList;
 
-    private Luban(File cacheDir) {
+    private Luban2(File cacheDir) {
         mCacheDir = cacheDir;
     }
 
@@ -60,7 +59,7 @@ public class Luban {
      * @see #getPhotoCacheDir(android.content.Context, String)
      */
     private static synchronized File getPhotoCacheDir(Context context) {
-        return getPhotoCacheDir(context, Luban.DEFAULT_DISK_CACHE_DIR);
+        return getPhotoCacheDir(context, Luban2.DEFAULT_DISK_CACHE_DIR);
     }
 
     /**
@@ -74,7 +73,8 @@ public class Luban {
     private static File getPhotoCacheDir(Context context, String cacheName) {
         File cacheDir = context.getCacheDir();
         if (cacheDir != null) {
-            File result = new File(cacheDir, cacheName);
+           String path = context.getExternalFilesDir(null) + cacheName;
+            File result = new File(path);
             if (!result.mkdirs() && (!result.exists() || !result.isDirectory())) {
                 // File wasn't able to create a directory, or the result exists but not a directory
                 return null;
@@ -93,18 +93,18 @@ public class Luban {
         return null;
     }
 
-    public static Luban get(Context context) {
+    public static Luban2 get(Context context) {
         mPathList = new ArrayList<>();
-        if (INSTANCE == null) INSTANCE = new Luban(Luban.getPhotoCacheDir(context));
+        if (INSTANCE == null) INSTANCE = new Luban2(Luban2.getPhotoCacheDir(context));
         return INSTANCE;
     }
 
-    public Luban launch() {
+    public Luban2 launch() {
         checkNotNull(mFile, "the image file cannot be null, please call .load() before this method!");
 
         if (compressListener != null) compressListener.onStart();
 
-        if (gear == Luban.FIRST_GEAR)
+        if (gear == Luban2.FIRST_GEAR)
             Observable.fromIterable(mFile)
                     .map(new Function<File, File>() {
                         @Override
@@ -131,6 +131,7 @@ public class Luban {
                         @Override
                         public void run() throws Exception {
                             if (compressListener != null) compressListener.onSuccess(mPathList);
+                            mPathList.clear();
                         }
                     })
                     .subscribe(new Consumer<File>() {
@@ -138,15 +139,16 @@ public class Luban {
                         public void accept(File file) throws Exception {
                         }
                     });
-        else if (gear == Luban.THIRD_GEAR)
+        else if (gear == Luban2.THIRD_GEAR)
             Observable.fromIterable(mFile)
                     .map(new Function<File, File>() {
                         @Override
                         public File apply(File file) throws Exception {
+                            Log.e("gy","执行几次");
                             return thirdCompress(file);
                         }
                     })
-                    .subscribeOn(Schedulers.io())
+                    .subscribeOn(Schedulers.newThread())
                     .observeOn(AndroidSchedulers.mainThread())
                     .doOnError(new Consumer<Throwable>() {
                         @Override
@@ -176,17 +178,17 @@ public class Luban {
         return this;
     }
 
-    public Luban load(List<File> files) {
+    public Luban2 load(List<File> files) {
         mFile = files;
         return this;
     }
 
-    public Luban setCompressListener(OnCompressListener listener) {
+    public Luban2 setCompressListener(OnCompressListener listener) {
         compressListener = listener;
         return this;
     }
 
-    public Luban putGear(int gear) {
+    public Luban2 putGear(int gear) {
         this.gear = gear;
         return this;
     }
@@ -194,7 +196,7 @@ public class Luban {
     /**
      * @deprecated
      */
-    public Luban setFilename(String filename) {
+    public Luban2 setFilename(String filename) {
         this.filename = filename;
         return this;
     }
@@ -453,29 +455,31 @@ public class Luban {
      * @param bitmap   the image what be save   目标图片
      * @param size     the file size of image   期望大小
      */
-    private File saveImage(String filePath, Bitmap bitmap, long size) {
+    private File saveImage(String filePath, Bitmap bitmap, long size){
         checkNotNull(bitmap, TAG + "bitmap cannot be null");
 
         File result = new File(filePath.substring(0, filePath.lastIndexOf("/")));
 
         if (!result.exists() && !result.mkdirs()) return null;
 
-        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+//        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+//
         int options = 100;
-        bitmap.compress(Bitmap.CompressFormat.JPEG, options, stream);
-
-        while (stream.toByteArray().length / 1024 > size && options > 6) {
-            stream.reset();
-            options -= 6;
-            bitmap.compress(Bitmap.CompressFormat.JPEG, options, stream);
-        }
-        bitmap.recycle();
+//        bitmap.compress(Bitmap.CompressFormat.JPEG, options, stream);
+//
+//        while (stream.toByteArray().length / 1024 > size && options > 6) {
+//            stream.reset();
+//            options -= 6;
+//            bitmap.compress(Bitmap.CompressFormat.JPEG, options, stream);
+//        }
+//        bitmap.recycle();
         try {
             FileOutputStream fos = new FileOutputStream(filePath);
-            fos.write(stream.toByteArray());
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 80, fos);
+            bitmap.recycle();
+//            fos.write(stream.toByteArray());
             fos.flush();
             fos.close();
-            stream.close();
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -1,9 +1,12 @@
 package com.gaoyuan.bitmapcompress;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Rect;
+
+import net.bither.util.NativeUtil;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -90,6 +93,48 @@ public class BitmapUtils {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    /**
+     * @param
+     * @param filePath
+     * @return
+     */
+    public static String compressBitmap(Context context,String filePath) {
+        String s = System.currentTimeMillis() + ".png";
+        String p = context.getExternalFilesDir(null) + s;
+        Bitmap image = BitmapFactory.decodeFile(filePath);
+        // 最大图片大小 100KB
+        int maxSize = 100;
+        // 获取尺寸压缩倍数
+        int ratio = NativeUtil.getRatioSize(image.getWidth(), image.getHeight());
+        // 压缩Bitmap到对应尺寸
+        Bitmap result = Bitmap.createBitmap(image.getWidth() / ratio, image.getHeight() / ratio, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(result);
+        Rect rect = new Rect(0, 0, image.getWidth() / ratio, image.getHeight() / ratio);
+        canvas.drawBitmap(image, null, rect, null);
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        // 质量压缩方法，这里100表示不压缩，把压缩后的数据存放到baos中
+        int options = 100;
+        result.compress(Bitmap.CompressFormat.JPEG, options, baos);
+        // 循环判断如果压缩后图片是否大于100kb,大于继续压缩
+        while (baos.toByteArray().length / 1024 > maxSize) {
+            // 重置baos即清空baos
+            baos.reset();
+            // 每次都减少10
+            options -= 10;
+            // 这里压缩options%，把压缩后的数据存放到baos中
+            result.compress(Bitmap.CompressFormat.JPEG, options, baos);
+        }
+        // JNI调用保存图片到SD卡 这个关键
+        NativeUtil.saveBitmap(result, 80,p , true);
+        // 释放Bitmap
+        if (result != null && !result.isRecycled()) {
+            result.recycle();
+            result = null;
+        }
+        return p;
     }
 
 
