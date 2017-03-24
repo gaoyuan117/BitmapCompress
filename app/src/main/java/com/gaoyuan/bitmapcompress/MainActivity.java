@@ -105,8 +105,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             case R.id.bt_main_start:
                 s1 = System.currentTimeMillis();
-                a();
-//                luban2();
+//                a();
+                luban2();
                 break;
         }
     }

@@ -140,6 +140,7 @@ public class Luban2 {
                     .subscribe(new Consumer<File>() {
                         @Override
                         public void accept(File file) throws Exception {
+                            mPathList.add(file.getAbsolutePath());
                         }
                     });
         else if (gear == Luban2.THIRD_GEAR)
@@ -151,7 +152,7 @@ public class Luban2 {
                             return thirdCompress(file);
                         }
                     })
-                    .subscribeOn(Schedulers.newThread())
+                    .subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
                     .doOnError(new Consumer<Throwable>() {
                         @Override
@@ -175,6 +176,7 @@ public class Luban2 {
                     .subscribe(new Consumer<File>() {
                         @Override
                         public void accept(File file) throws Exception {
+                            mPathList.add(file.getAbsolutePath());
                         }
                     });
 
@@ -490,7 +492,6 @@ public class Luban2 {
             e.printStackTrace();
         }
         File file = new File(filePath);
-        mPathList.add(filePath);
         return file;
     }
 
